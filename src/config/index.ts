@@ -2,7 +2,11 @@ import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
 import { hardhat } from '@reown/appkit/networks'
 import type { AppKitNetwork } from '@reown/appkit/networks'
 
-export const projectId = process.env.NEXT_PUBLIC_REOWN_PROJECT_ID || 'b56e18d47c72ab683b10814fe9495694'
+export const projectId = process.env.NEXT_PUBLIC_REOWN_PROJECT_ID
+
+if (!projectId) {
+  throw new Error('NEXT_PUBLIC_REOWN_PROJECT_ID is not set')
+}
 
 export const networks: [AppKitNetwork, ...AppKitNetwork[]] = [hardhat]
 
@@ -20,4 +24,3 @@ export const metadata = {
 }
 
 export const CONTRACT_ADDRESS = '0x5FbDB2315678afecb367f032d93F642f64180aa3' as const
-

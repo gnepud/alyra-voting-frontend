@@ -1,8 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useWriteContract, useConfig } from 'wagmi'
-import { getPublicClient } from '@wagmi/core'
+import { useWriteContract, usePublicClient } from 'wagmi'
 import { CONTRACT_ADDRESS } from '@/config'
 import { useUiStore } from '@/store/useUiStore'
 import VotingABI from '@/abi/Voting.json'
@@ -18,7 +17,7 @@ export default function VoterPanel({ currentStatus, hasVoted, votedProposalId, r
   const [proposalText, setProposalText] = useState('')
   const { writeContractAsync } = useWriteContract()
   const { setTxPending, addToast } = useUiStore()
-  const config = useConfig()
+  const publicClient = usePublicClient()
 
   const handleAddProposal = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -37,9 +36,8 @@ export default function VoterPanel({ currentStatus, hasVoted, votedProposalId, r
       })
       setTxPending(true, txHash)
 
-      const client = getPublicClient(config)
-      if (client) {
-        await client.waitForTransactionReceipt({ hash: txHash })
+      if (publicClient) {
+        await publicClient.waitForTransactionReceipt({ hash: txHash })
       }
 
       addToast('success', 'Proposal Submitted', 'Your proposal was registered on the blockchain.')

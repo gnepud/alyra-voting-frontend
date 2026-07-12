@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useWriteContract, useConfig } from 'wagmi'
-import { getPublicClient } from '@wagmi/core'
+import { useWriteContract, usePublicClient } from 'wagmi'
+import { isAddress } from 'viem'
 import { CONTRACT_ADDRESS } from '@/config'
 import { useUiStore } from '@/store/useUiStore'
 import VotingABI from '@/abi/Voting.json'
@@ -17,11 +17,11 @@ export default function AdminPanel({ currentStatus, refresh }: AdminPanelProps) 
   const [voterAddress, setVoterAddress] = useState('')
   const { writeContractAsync } = useWriteContract()
   const { setTxPending, addToast } = useUiStore()
-  const config = useConfig()
+  const publicClient = usePublicClient()
 
   const handleAddVoter = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!voterAddress.startsWith('0x') || voterAddress.length !== 42) {
+    if (!isAddress(voterAddress)) {
       addToast('error', 'Invalid Address', 'Please input a valid 42-character Ethereum address.')
       return
     }
@@ -36,9 +36,8 @@ export default function AdminPanel({ currentStatus, refresh }: AdminPanelProps) 
       })
       setTxPending(true, txHash)
 
-      const client = getPublicClient(config)
-      if (client) {
-        await client.waitForTransactionReceipt({ hash: txHash })
+      if (publicClient) {
+        await publicClient.waitForTransactionReceipt({ hash: txHash })
       }
 
       addToast('success', 'Voter Added', `Address ${voterAddress.slice(0, 6)}... registered successfully.`)
@@ -62,9 +61,8 @@ export default function AdminPanel({ currentStatus, refresh }: AdminPanelProps) 
       })
       setTxPending(true, txHash)
 
-      const client = getPublicClient(config)
-      if (client) {
-        await client.waitForTransactionReceipt({ hash: txHash })
+      if (publicClient) {
+        await publicClient.waitForTransactionReceipt({ hash: txHash })
       }
 
       addToast('success', 'Workflow Advanced', `Transitioned to: ${phaseName}`)

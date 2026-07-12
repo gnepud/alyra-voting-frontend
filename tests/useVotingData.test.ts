@@ -140,16 +140,16 @@ describe('useVotingData hook', () => {
     // Mock contract reads for voter and proposals
     mockReadContract.mockImplementation((args: { functionName: string; args: any[] }) => {
       if (args.functionName === 'getVoter') {
-        // Returns [isRegistered, hasVoted, votedProposalId]
-        return [true, true, 1n]
+        // Returns { isRegistered, hasVoted, votedProposalId }
+        return { isRegistered: true, hasVoted: true, votedProposalId: 1n }
       }
       if (args.functionName === 'getOneProposal') {
         const id = args.args[0]
         if (id === 0n) {
-          return ['Genesis proposal description', 0n]
+          return { description: 'Genesis proposal description', voteCount: 0n }
         }
         if (id === 1n) {
-          return ['First voter proposal description', 2n]
+          return { description: 'First voter proposal description', voteCount: 2n }
         }
       }
       return undefined

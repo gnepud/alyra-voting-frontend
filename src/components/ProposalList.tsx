@@ -1,8 +1,7 @@
 'use client'
 
 import React from 'react'
-import { useWriteContract, useConfig } from 'wagmi'
-import { getPublicClient } from '@wagmi/core'
+import { useWriteContract, usePublicClient } from 'wagmi'
 import { CONTRACT_ADDRESS } from '@/config'
 import { useUiStore } from '@/store/useUiStore'
 import { type Proposal } from '@/hooks/useVotingData'
@@ -20,7 +19,7 @@ interface ProposalListProps {
 export default function ProposalList({ proposals, currentStatus, isVoter, hasVoted, winningId, refresh }: ProposalListProps) {
   const { writeContractAsync } = useWriteContract()
   const { setTxPending, addToast } = useUiStore()
-  const config = useConfig()
+  const publicClient = usePublicClient()
 
   const handleVote = async (id: number) => {
     try {
@@ -33,9 +32,8 @@ export default function ProposalList({ proposals, currentStatus, isVoter, hasVot
       })
       setTxPending(true, txHash)
 
-      const client = getPublicClient(config)
-      if (client) {
-        await client.waitForTransactionReceipt({ hash: txHash })
+      if (publicClient) {
+        await publicClient.waitForTransactionReceipt({ hash: txHash })
       }
 
       addToast('success', 'Vote Cast', `Voted successfully on Proposal ID ${id}.`)

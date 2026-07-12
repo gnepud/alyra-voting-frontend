@@ -86,14 +86,14 @@ export function useVotingData() {
             functionName: 'getVoter',
             args: [address],
             account: address,
-          })) as [boolean, boolean, bigint]
+          })) as { isRegistered: boolean; hasVoted: boolean; votedProposalId: bigint }
           
           setVoterInfo({
-            isRegistered: voterProfile[0],
-            hasVoted: voterProfile[1],
-            votedProposalId: voterProfile[2]
+            isRegistered: voterProfile.isRegistered,
+            hasVoted: voterProfile.hasVoted,
+            votedProposalId: voterProfile.votedProposalId
           })
-          isUserVoter = voterProfile[0]
+          isUserVoter = voterProfile.isRegistered
         } catch (err) {
           console.error("Error reading voter profile:", err)
           setVoterInfo(null)
@@ -123,12 +123,12 @@ export function useVotingData() {
               functionName: 'getOneProposal',
               args: [BigInt(id)],
               account: address,
-            })) as [string, bigint]
+            })) as { description: string; voteCount: bigint }
 
             return {
               id,
-              description: proposalData[0],
-              voteCount: proposalData[1],
+              description: proposalData.description,
+              voteCount: proposalData.voteCount,
             }
           } catch (err) {
             console.error(`Error reading proposal ${id}:`, err)
@@ -151,9 +151,7 @@ export function useVotingData() {
 
   // Trigger loading on changes
   useEffect(() => {
-    Promise.resolve().then(() => {
-      fetchBlockchainData()
-    })
+    fetchBlockchainData()
   }, [fetchBlockchainData, workflowStatus])
 
   const refresh = useCallback(() => {

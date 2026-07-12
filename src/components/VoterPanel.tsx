@@ -1,11 +1,11 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useWriteContract } from 'wagmi'
+import { useWriteContract, useConfig } from 'wagmi'
+import { getPublicClient } from '@wagmi/core'
+import { CONTRACT_ADDRESS } from '@/config'
 import { useUiStore } from '@/store/useUiStore'
 import VotingABI from '@/abi/Voting.json'
-
-const CONTRACT_ADDRESS = '0x5FbDB2315678afecb367f032d93F642f64180aa3' as const
 
 interface VoterPanelProps {
   currentStatus: number
@@ -18,6 +18,7 @@ export default function VoterPanel({ currentStatus, hasVoted, votedProposalId, r
   const [proposalText, setProposalText] = useState('')
   const { writeContractAsync } = useWriteContract()
   const { setTxPending, addToast } = useUiStore()
+  const config = useConfig()
 
   const handleAddProposal = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,6 +36,12 @@ export default function VoterPanel({ currentStatus, hasVoted, votedProposalId, r
         args: [proposalText],
       })
       setTxPending(true, txHash)
+
+      const client = getPublicClient(config)
+      if (client) {
+        await client.waitForTransactionReceipt({ hash: txHash })
+      }
+
       addToast('success', 'Proposal Submitted', 'Your proposal was registered on the blockchain.')
       setProposalText('')
       refresh()
@@ -45,6 +52,7 @@ export default function VoterPanel({ currentStatus, hasVoted, votedProposalId, r
       setTxPending(false)
     }
   }
+
 
   return (
     <div className="flex flex-col gap-6 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm">

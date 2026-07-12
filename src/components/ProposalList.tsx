@@ -1,12 +1,12 @@
 'use client'
 
 import React from 'react'
-import { useWriteContract } from 'wagmi'
+import { useWriteContract, useConfig } from 'wagmi'
+import { getPublicClient } from '@wagmi/core'
+import { CONTRACT_ADDRESS } from '@/config'
 import { useUiStore } from '@/store/useUiStore'
 import { type Proposal } from '@/hooks/useVotingData'
 import VotingABI from '@/abi/Voting.json'
-
-const CONTRACT_ADDRESS = '0x5FbDB2315678afecb367f032d93F642f64180aa3' as const
 
 interface ProposalListProps {
   proposals: Proposal[]
@@ -20,6 +20,7 @@ interface ProposalListProps {
 export default function ProposalList({ proposals, currentStatus, isVoter, hasVoted, winningId, refresh }: ProposalListProps) {
   const { writeContractAsync } = useWriteContract()
   const { setTxPending, addToast } = useUiStore()
+  const config = useConfig()
 
   const handleVote = async (id: number) => {
     try {
@@ -31,6 +32,12 @@ export default function ProposalList({ proposals, currentStatus, isVoter, hasVot
         args: [BigInt(id)],
       })
       setTxPending(true, txHash)
+
+      const client = getPublicClient(config)
+      if (client) {
+        await client.waitForTransactionReceipt({ hash: txHash })
+      }
+
       addToast('success', 'Vote Cast', `Voted successfully on Proposal ID ${id}.`)
       refresh()
     } catch (err: unknown) {
@@ -40,6 +47,7 @@ export default function ProposalList({ proposals, currentStatus, isVoter, hasVot
       setTxPending(false)
     }
   }
+
 
   // Show winning proposal card if votes are tallied
   const winningProposal = currentStatus === 5 ? proposals.find(p => p.id === winningId) : null

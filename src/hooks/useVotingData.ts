@@ -2,10 +2,9 @@ import { useEffect, useState, useCallback } from 'react'
 import { useAccount, useReadContract, useWatchContractEvent } from 'wagmi'
 import { getPublicClient } from '@wagmi/core'
 import { parseAbiItem } from 'viem'
-import { wagmiAdapter } from '@/config'
+import { wagmiAdapter, CONTRACT_ADDRESS } from '@/config'
 import VotingABI from '@/abi/Voting.json'
 
-const CONTRACT_ADDRESS = '0x5FbDB2315678afecb367f032d93F642f64180aa3' as const
 
 export interface Proposal {
   id: number
@@ -152,8 +151,9 @@ export function useVotingData() {
 
   // Trigger loading on changes
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchBlockchainData()
+    Promise.resolve().then(() => {
+      fetchBlockchainData()
+    })
   }, [fetchBlockchainData, workflowStatus])
 
   const refresh = useCallback(() => {

@@ -1,11 +1,12 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useWriteContract } from 'wagmi'
+import { useWriteContract, useConfig } from 'wagmi'
+import { getPublicClient } from '@wagmi/core'
+import { CONTRACT_ADDRESS } from '@/config'
 import { useUiStore } from '@/store/useUiStore'
 import VotingABI from '@/abi/Voting.json'
 
-const CONTRACT_ADDRESS = '0x5FbDB2315678afecb367f032d93F642f64180aa3' as const
 
 interface AdminPanelProps {
   currentStatus: number
@@ -16,6 +17,7 @@ export default function AdminPanel({ currentStatus, refresh }: AdminPanelProps) 
   const [voterAddress, setVoterAddress] = useState('')
   const { writeContractAsync } = useWriteContract()
   const { setTxPending, addToast } = useUiStore()
+  const config = useConfig()
 
   const handleAddVoter = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,6 +35,12 @@ export default function AdminPanel({ currentStatus, refresh }: AdminPanelProps) 
         args: [voterAddress],
       })
       setTxPending(true, txHash)
+
+      const client = getPublicClient(config)
+      if (client) {
+        await client.waitForTransactionReceipt({ hash: txHash })
+      }
+
       addToast('success', 'Voter Added', `Address ${voterAddress.slice(0, 6)}... registered successfully.`)
       setVoterAddress('')
       refresh()
@@ -53,6 +61,12 @@ export default function AdminPanel({ currentStatus, refresh }: AdminPanelProps) 
         functionName,
       })
       setTxPending(true, txHash)
+
+      const client = getPublicClient(config)
+      if (client) {
+        await client.waitForTransactionReceipt({ hash: txHash })
+      }
+
       addToast('success', 'Workflow Advanced', `Transitioned to: ${phaseName}`)
       refresh()
     } catch (err: unknown) {
@@ -62,6 +76,7 @@ export default function AdminPanel({ currentStatus, refresh }: AdminPanelProps) 
       setTxPending(false)
     }
   }
+
 
   return (
     <div className="flex flex-col gap-6 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm">

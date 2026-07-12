@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "appkit": {
+      "source": "reown-com/skills",
+      "sourceType": "github",
+      "skillPath": "skills/appkit/SKILL.md",
+      "computedHash": "da138387a82d54bb1c354ec4c347033ea86b91b2c71d9f839218b21941a29c08"
+    },
+    "shadcn": {
+      "source": "shadcn/ui",
+      "sourceType": "github",
+      "skillPath": "skills/shadcn/SKILL.md",
+      "computedHash": "d81caa0f86aabab65b25e302d454f23a3328760386ed9078345584c0d5c8058e"
+    }
+  }
+}

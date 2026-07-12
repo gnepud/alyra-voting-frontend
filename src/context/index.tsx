@@ -1,12 +1,10 @@
 'use client'
 
-import React, { type ReactNode } from 'react'
+import React, { type ReactNode, useState } from 'react'
 import { createAppKit } from '@reown/appkit/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cookieToInitialState, WagmiProvider, type Config } from 'wagmi'
 import { projectId, networks, wagmiAdapter, metadata } from '@/config'
-
-const queryClient = new QueryClient()
 
 createAppKit({
   adapters: [wagmiAdapter],
@@ -27,6 +25,8 @@ export default function ContextProvider({
   children: ReactNode
   cookies: string | null
 }) {
+  const [queryClient] = useState(() => new QueryClient())
+
   const initialState = cookieToInitialState(
     wagmiAdapter.wagmiConfig as Config,
     cookies

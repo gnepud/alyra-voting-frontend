@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { headers } from "next/headers";
 import ContextProvider from "@/context";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -35,6 +36,7 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col bg-zinc-50 dark:bg-black text-black dark:text-zinc-50">
         <ContextProvider cookies={cookies}>
           {children}
+          <Toaster position="bottom-right" closeButton richColors />
         </ContextProvider>
       </body>
     </html>

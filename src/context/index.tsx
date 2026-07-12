@@ -4,6 +4,7 @@ import React, { type ReactNode, useState } from 'react'
 import { createAppKit } from '@reown/appkit/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cookieToInitialState, WagmiProvider, type Config } from 'wagmi'
+import { ThemeProvider } from 'next-themes'
 import { projectId, networks, wagmiAdapter, metadata } from '@/config'
 
 createAppKit({
@@ -38,7 +39,9 @@ export default function ContextProvider({
       initialState={initialState}
     >
       <QueryClientProvider client={queryClient}>
-        {children}
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+        </ThemeProvider>
       </QueryClientProvider>
     </WagmiProvider>
   )

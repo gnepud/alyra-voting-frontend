@@ -100,7 +100,7 @@ export default function ProposalList({ proposals, currentStatus, isVoter, hasVot
                   </div>
 
                   <div className="flex items-center gap-3">
-                    {(currentStatus >= 4 || isWinner) && (
+                    {(currentStatus === 5 || isWinner) && (
                       <span className="text-xs font-bold text-zinc-500">
                         {Number(proposal.voteCount)} Votes
                       </span>

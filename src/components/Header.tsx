@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useAppKitAccount } from '@reown/appkit/react'
 
 interface HeaderProps {
@@ -10,6 +10,8 @@ interface HeaderProps {
 
 export default function Header({ isOwner, isVoter }: HeaderProps) {
   const { isConnected } = useAppKitAccount()
+  const [mounted, setMounted] = React.useState(false)
+  React.useEffect(() => { setMounted(true) }, [])
 
   return (
     <header className="border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-black/80 backdrop-blur-md sticky top-0 z-40 w-full px-6 py-4 flex justify-between items-center">
@@ -24,7 +26,7 @@ export default function Header({ isOwner, isVoter }: HeaderProps) {
       </div>
       
       <div className="flex items-center gap-3">
-        {isConnected && (
+        {mounted && isConnected && (
           <div className="flex gap-2">
             {isOwner && (
               <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-900">

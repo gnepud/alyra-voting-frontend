@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { useWriteContract, usePublicClient } from 'wagmi'
 import { CONTRACT_ADDRESS } from '@/config'
 import { useUiStore } from '@/store/useUiStore'
+import { toast } from 'sonner'
 import VotingABI from '@/abi/Voting.json'
 
 interface VoterPanelProps {
@@ -16,13 +17,13 @@ interface VoterPanelProps {
 export default function VoterPanel({ currentStatus, hasVoted, votedProposalId, refresh }: VoterPanelProps) {
   const [proposalText, setProposalText] = useState('')
   const { writeContractAsync } = useWriteContract()
-  const { setTxPending, addToast } = useUiStore()
+  const { setTxPending } = useUiStore()
   const publicClient = usePublicClient()
 
   const handleAddProposal = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!proposalText.trim()) {
-      addToast('error', 'Empty Proposal', 'Proposal description cannot be empty.')
+      toast.error('Proposal description cannot be empty.')
       return
     }
 
@@ -40,12 +41,12 @@ export default function VoterPanel({ currentStatus, hasVoted, votedProposalId, r
         await publicClient.waitForTransactionReceipt({ hash: txHash })
       }
 
-      addToast('success', 'Proposal Submitted', 'Your proposal was registered on the blockchain.')
+      toast.success('Your proposal was registered on the blockchain.')
       setProposalText('')
       refresh()
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Transaction reverted.'
-      addToast('error', 'Execution Failed', message)
+      toast.error(message)
     } finally {
       setTxPending(false)
     }

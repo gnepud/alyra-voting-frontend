@@ -4,6 +4,7 @@ import React from 'react'
 import { useWriteContract, usePublicClient } from 'wagmi'
 import { CONTRACT_ADDRESS } from '@/config'
 import { useUiStore } from '@/store/useUiStore'
+import { toast } from 'sonner'
 import { type Proposal } from '@/hooks/useVotingData'
 import VotingABI from '@/abi/Voting.json'
 
@@ -18,7 +19,7 @@ interface ProposalListProps {
 
 export default function ProposalList({ proposals, currentStatus, isVoter, hasVoted, winningId, refresh }: ProposalListProps) {
   const { writeContractAsync } = useWriteContract()
-  const { setTxPending, addToast } = useUiStore()
+  const { setTxPending } = useUiStore()
   const publicClient = usePublicClient()
 
   const handleVote = async (id: number) => {
@@ -36,11 +37,11 @@ export default function ProposalList({ proposals, currentStatus, isVoter, hasVot
         await publicClient.waitForTransactionReceipt({ hash: txHash })
       }
 
-      addToast('success', 'Vote Cast', `Voted successfully on Proposal ID ${id}.`)
+      toast.success(`Voted successfully on Proposal ID ${id}.`)
       refresh()
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Transaction reverted.'
-      addToast('error', 'Vote Failed', message)
+      toast.error(message)
     } finally {
       setTxPending(false)
     }

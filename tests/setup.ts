@@ -2,6 +2,8 @@ import '@testing-library/jest-dom'
 import { cleanup } from '@testing-library/react'
 import { afterEach, vi } from 'vitest'
 
+process.env.NEXT_PUBLIC_REOWN_PROJECT_ID = 'b56e18d47c72ab683b10814fe9495694'
+
 afterEach(() => {
   cleanup()
 })

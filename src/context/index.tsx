@@ -10,7 +10,7 @@ import { projectId, networks, wagmiAdapter, metadata } from '@/config'
 createAppKit({
   adapters: [wagmiAdapter],
   networks,
-  projectId,
+  projectId: projectId as string,
   metadata,
   features: {
     analytics: false,

@@ -5,6 +5,7 @@ import { useWriteContract, usePublicClient } from 'wagmi'
 import { isAddress } from 'viem'
 import { CONTRACT_ADDRESS } from '@/config'
 import { useUiStore } from '@/store/useUiStore'
+import { toast } from 'sonner'
 import VotingABI from '@/abi/Voting.json'
 
 
@@ -16,13 +17,13 @@ interface AdminPanelProps {
 export default function AdminPanel({ currentStatus, refresh }: AdminPanelProps) {
   const [voterAddress, setVoterAddress] = useState('')
   const { writeContractAsync } = useWriteContract()
-  const { setTxPending, addToast } = useUiStore()
+  const { setTxPending } = useUiStore()
   const publicClient = usePublicClient()
 
   const handleAddVoter = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!isAddress(voterAddress)) {
-      addToast('error', 'Invalid Address', 'Please input a valid 42-character Ethereum address.')
+      toast.error('Please input a valid Ethereum address.')
       return
     }
 
@@ -40,12 +41,12 @@ export default function AdminPanel({ currentStatus, refresh }: AdminPanelProps) 
         await publicClient.waitForTransactionReceipt({ hash: txHash })
       }
 
-      addToast('success', 'Voter Added', `Address ${voterAddress.slice(0, 6)}... registered successfully.`)
+      toast.success(`Address ${voterAddress.slice(0, 6)}... registered successfully.`)
       setVoterAddress('')
       refresh()
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Transaction reverted.'
-      addToast('error', 'Execution Failed', message)
+      toast.error(message)
     } finally {
       setTxPending(false)
     }
@@ -65,11 +66,11 @@ export default function AdminPanel({ currentStatus, refresh }: AdminPanelProps) 
         await publicClient.waitForTransactionReceipt({ hash: txHash })
       }
 
-      addToast('success', 'Workflow Advanced', `Transitioned to: ${phaseName}`)
+      toast.success(`Transitioned to: ${phaseName}`)
       refresh()
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Transaction reverted.'
-      addToast('error', 'Transition Failed', message)
+      toast.error(message)
     } finally {
       setTxPending(false)
     }

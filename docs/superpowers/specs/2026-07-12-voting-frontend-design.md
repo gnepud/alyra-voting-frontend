@@ -8,7 +8,7 @@ The frontend connects to an already deployed `Voting.sol` smart contract on the 
 ---
 
 ## 1. Objectives & Success Criteria
-1. **Wallet Connection**: Smooth, responsive Web3 connection via Reown AppKit.
+1. **Wallet Connection**: Smooth, responsive Web3 connection AppKit.
 2. **Unified Dashboard**: An adaptive, single-page UI that shifts context depending on the user's role (Owner, Voter, Guest) and the active smart contract stage.
 3. **Workflow Transparency**: A visual stepper displaying the contract’s 6 workflow statuses in real-time.
 4. **Data Sync**: Immediate updates to the UI when contract events (voter registered, proposal added, vote cast, status changed) occur.

@@ -28,13 +28,13 @@ export default function Dashboard() {
   return (
     <div className="flex flex-col flex-1 min-h-screen">
       <Header isOwner={isOwner} isVoter={isVoter} />
-      
+
       <main className="flex-1 w-full max-w-5xl mx-auto px-6 py-8 flex flex-col gap-6">
         {/* Connection Notice */}
         {!isConnected ? (
           <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl text-center gap-4 shadow-sm">
             <h2 className="text-2xl font-bold tracking-tight">Decentralized Voting System</h2>
-            <p className="text-zinc-500 max-w-md">Connect your Web3 Wallet via Reown to participate in proposing, voting, and view live results.</p>
+            <p className="text-zinc-500 max-w-md">Connect your Web3 Wallet to participate in proposing, voting, and view live results.</p>
             <appkit-button />
           </div>
         ) : (
@@ -49,11 +49,11 @@ export default function Dashboard() {
                   <AdminPanel currentStatus={workflowStatus} refresh={refresh} />
                 )}
                 {isVoter ? (
-                  <VoterPanel 
-                    currentStatus={workflowStatus} 
-                    hasVoted={voterInfo?.hasVoted || false} 
-                    votedProposalId={voterInfo?.votedProposalId || 0n} 
-                    refresh={refresh} 
+                  <VoterPanel
+                    currentStatus={workflowStatus}
+                    hasVoted={voterInfo?.hasVoted || false}
+                    votedProposalId={voterInfo?.votedProposalId || 0n}
+                    refresh={refresh}
                   />
                 ) : (
                   !isOwner && <GuestPanel />
@@ -83,11 +83,11 @@ export default function Dashboard() {
       {toasts.length > 0 && (
         <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full">
           {toasts.map((toast) => (
-            <div 
-              key={toast.id} 
+            <div
+              key={toast.id}
               className={`p-4 rounded-xl border shadow-lg flex justify-between items-start gap-4 transition-all duration-300 animate-slide-in ${
-                toast.type === 'success' 
-                  ? 'bg-green-50 border-green-200 text-green-900 dark:bg-green-950/20 dark:border-green-900 dark:text-green-300' 
+                toast.type === 'success'
+                  ? 'bg-green-50 border-green-200 text-green-900 dark:bg-green-950/20 dark:border-green-900 dark:text-green-300'
                   : toast.type === 'error'
                     ? 'bg-red-50 border-red-200 text-red-900 dark:bg-red-950/20 dark:border-red-900 dark:text-red-300'
                     : 'bg-zinc-50 border-zinc-200 text-zinc-900 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-300'
@@ -97,8 +97,8 @@ export default function Dashboard() {
                 <h4 className="font-semibold text-sm">{toast.title}</h4>
                 <p className="text-xs mt-1 text-zinc-600 dark:text-zinc-400">{toast.message}</p>
               </div>
-              <button 
-                onClick={() => removeToast(toast.id)} 
+              <button
+                onClick={() => removeToast(toast.id)}
                 className="text-xs font-bold text-zinc-400 hover:text-zinc-600 outline-none"
               >
                 ✕

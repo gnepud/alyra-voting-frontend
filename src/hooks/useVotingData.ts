@@ -152,6 +152,7 @@ export function useVotingData() {
 
   // Trigger loading on changes
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchBlockchainData()
   }, [fetchBlockchainData, workflowStatus])
 

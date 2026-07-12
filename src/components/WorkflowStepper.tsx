@@ -22,7 +22,6 @@ export default function WorkflowStepper({ currentStatus }: StepperProps) {
         {STEPS.map((step, index) => {
           const isCompleted = index < currentStatus
           const isActive = index === currentStatus
-          const isFuture = index > currentStatus
 
           return (
             <div key={step} className="flex flex-col gap-2 relative">

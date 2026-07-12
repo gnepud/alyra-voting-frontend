@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { useAppKitAccount } from '@reown/appkit/react'
 
 interface HeaderProps {
@@ -11,6 +11,7 @@ interface HeaderProps {
 export default function Header({ isOwner, isVoter }: HeaderProps) {
   const { isConnected } = useAppKitAccount()
   const [mounted, setMounted] = React.useState(false)
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   React.useEffect(() => { setMounted(true) }, [])
 
   return (

@@ -111,6 +111,19 @@ export function useVotingData() {
       })
       const proposalIds = proposalLogs.map((log) => Number(log.args.proposalId))
 
+      // 3.5 Fetch Voted events to calculate vote counts dynamically for non-voter users
+      const votedLogs = await client.getLogs({
+        address: CONTRACT_ADDRESS,
+        event: parseAbiItem('event Voted(address voter, uint proposalId)'),
+        fromBlock: 0n,
+        toBlock: 'latest',
+      })
+      const voteCountsMap: Record<number, bigint> = {}
+      votedLogs.forEach((log) => {
+        const propId = Number(log.args.proposalId)
+        voteCountsMap[propId] = (voteCountsMap[propId] || 0n) + 1n
+      })
+
       // 4. Resolve proposal descriptions & vote counts.
       // Constraint: calling getOneProposal reverts if account is not registered.
       // So we must use a registered address (or let current user call it only if registered)
@@ -153,7 +166,7 @@ export function useVotingData() {
             return {
               id,
               description,
-              voteCount: 0n,
+              voteCount: voteCountsMap[id] || 0n,
             }
           } catch (err) {
             console.error(`Error decoding proposal tx for ID ${id}:`, err)
@@ -168,7 +181,7 @@ export function useVotingData() {
           proposalList.unshift({
             id: 0,
             description: 'GENESIS',
-            voteCount: 0n,
+            voteCount: voteCountsMap[0] || 0n,
           })
         }
         setProposals(proposalList)

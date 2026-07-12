@@ -77,7 +77,7 @@ export function useVotingData() {
       // Check if current user is registered
       const currentUserRegistered = address ? voterAddresses.some(v => v.toLowerCase() === address.toLowerCase()) : false
 
-      // 2. Fetch voter profile for current user (only if registered or owner)
+      // 2. Fetch voter profile for current user (only if registered)
       let isUserVoter = false
       if (currentUserRegistered && address) {
         try {
@@ -116,8 +116,7 @@ export function useVotingData() {
       // Constraint: calling getOneProposal reverts if account is not registered.
       // So we must use a registered address (or let current user call it only if registered)
       if (isUserVoter && address) {
-        const proposalList: Proposal[] = []
-        for (const id of proposalIds) {
+        const proposalPromises = proposalIds.map(async (id) => {
           try {
             const proposalData = (await client.readContract({
               address: CONTRACT_ADDRESS,
@@ -127,15 +126,18 @@ export function useVotingData() {
               account: address,
             })) as [string, bigint]
 
-            proposalList.push({
+            return {
               id,
               description: proposalData[0],
-              voteCount: proposalData[1]
-            })
+              voteCount: proposalData[1],
+            }
           } catch (err) {
             console.error(`Error reading proposal ${id}:`, err)
+            return null
           }
-        }
+        })
+        const results = await Promise.all(proposalPromises)
+        const proposalList = results.filter((p): p is Proposal => p !== null)
         setProposals(proposalList)
       } else {
         // Fallback: empty proposals or simple metadata showing names

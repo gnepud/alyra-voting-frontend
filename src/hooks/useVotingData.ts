@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useAccount, useReadContract, useWatchContractEvent } from 'wagmi'
 import { getPublicClient } from '@wagmi/core'
-import { parseAbiItem } from 'viem'
+import { parseAbiItem, decodeFunctionData } from 'viem'
 import { wagmiAdapter, CONTRACT_ADDRESS } from '@/config'
 import VotingABI from '@/abi/Voting.json'
 
@@ -138,8 +138,41 @@ export function useVotingData() {
         const results = await Promise.all(proposalPromises)
         const proposalList = results.filter((p): p is Proposal => p !== null)
         setProposals(proposalList)
+      } else if (isOwner && address) {
+        // Fallback for owner/admin: decode transaction input to get description
+        const proposalPromises = proposalLogs.map(async (log) => {
+          const id = Number(log.args.proposalId)
+          try {
+            if (!log.transactionHash) return null
+            const tx = await client.getTransaction({ hash: log.transactionHash })
+            const decoded = decodeFunctionData({
+              abi: VotingABI.abi,
+              data: tx.input,
+            })
+            const description = decoded.args?.[0] as string || ''
+            return {
+              id,
+              description,
+              voteCount: 0n,
+            }
+          } catch (err) {
+            console.error(`Error decoding proposal tx for ID ${id}:`, err)
+            return null
+          }
+        })
+        const results = await Promise.all(proposalPromises)
+        const proposalList = results.filter((p): p is Proposal => p !== null)
+
+        // Prepend GENESIS proposal if workflow Status >= 1 (ProposalsRegistrationStarted)
+        if (workflowStatus >= 1) {
+          proposalList.unshift({
+            id: 0,
+            description: 'GENESIS',
+            voteCount: 0n,
+          })
+        }
+        setProposals(proposalList)
       } else {
-        // Fallback: empty proposals or simple metadata showing names
         setProposals([])
       }
     } catch (error) {
@@ -147,7 +180,7 @@ export function useVotingData() {
     } finally {
       setIsEventLoading(false)
     }
-  }, [isConnected, address])
+  }, [isConnected, address, isOwner, workflowStatus])
 
   // Trigger loading on changes
   useEffect(() => {

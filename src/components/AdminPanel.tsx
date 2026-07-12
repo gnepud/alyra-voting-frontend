@@ -16,6 +16,7 @@ interface AdminPanelProps {
 
 export default function AdminPanel({ currentStatus, refresh }: AdminPanelProps) {
   const [voterAddress, setVoterAddress] = useState('')
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
   const { writeContractAsync } = useWriteContract()
   const { setTxPending } = useUiStore()
   const publicClient = usePublicClient()
@@ -67,6 +68,30 @@ export default function AdminPanel({ currentStatus, refresh }: AdminPanelProps) 
       }
 
       toast.success(`Transitioned to: ${phaseName}`)
+      refresh()
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Transaction reverted.'
+      toast.error(message)
+    } finally {
+      setTxPending(false)
+    }
+  }
+
+  const handleRestartVoting = async () => {
+    try {
+      setTxPending(true)
+      const txHash = await writeContractAsync({
+        address: CONTRACT_ADDRESS,
+        abi: VotingABI.abi,
+        functionName: 'restartVoting',
+      })
+      setTxPending(true, txHash)
+
+      if (publicClient) {
+        await publicClient.waitForTransactionReceipt({ hash: txHash })
+      }
+
+      toast.success('Voting cycle successfully restarted and reset to Voter Registration phase!')
       refresh()
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Transaction reverted.'
@@ -131,11 +156,49 @@ export default function AdminPanel({ currentStatus, refresh }: AdminPanelProps) 
           </button>
         )}
         {currentStatus === 5 && (
-          <div className="text-sm font-semibold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg p-3 text-center">
-            Voting Cycle Completed & Settled.
+          <div className="flex flex-col gap-4">
+            <div className="text-sm font-semibold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg p-3 text-center">
+              Voting Cycle Completed & Settled.
+            </div>
+            <button 
+              onClick={() => setShowConfirmModal(true)} 
+              className="w-full py-2 bg-transparent hover:bg-red-50 dark:hover:bg-red-950/20 border border-red-200 dark:border-red-900 text-red-600 hover:text-red-700 text-sm font-semibold rounded-lg transition flex items-center justify-center gap-2 font-medium"
+            >
+              ⚠️ Restart Voting Cycle
+            </button>
           </div>
         )}
       </div>
+
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl flex flex-col gap-4">
+            <div>
+              <h3 className="text-lg font-bold text-red-600">⚠️ Restart Voting Cycle?</h3>
+              <p className="text-sm text-zinc-500 mt-2">
+                This will permanently delete all registered voters, proposals, and vote counts from the blockchain. This action cannot be undone.
+              </p>
+            </div>
+            <div className="flex gap-3 justify-end mt-2">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="px-4 py-2 text-sm font-semibold border border-zinc-200 dark:border-zinc-800 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-900 transition text-zinc-700 dark:text-zinc-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowConfirmModal(false)
+                  handleRestartVoting()
+                }}
+                className="px-4 py-2 text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg transition"
+              >
+                Confirm Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

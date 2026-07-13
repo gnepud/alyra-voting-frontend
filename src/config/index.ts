@@ -48,3 +48,5 @@ export const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x$
 if (!CONTRACT_ADDRESS) {
   throw new Error('NEXT_PUBLIC_CONTRACT_ADDRESS is not set')
 }
+
+export const START_BLOCK = process.env.NEXT_PUBLIC_START_BLOCK ? BigInt(process.env.NEXT_PUBLIC_START_BLOCK) : 0n

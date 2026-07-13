@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useAccount, useReadContract, useWatchContractEvent } from 'wagmi'
 import { getPublicClient } from '@wagmi/core'
 import { parseAbiItem, decodeFunctionData } from 'viem'
-import { wagmiAdapter, CONTRACT_ADDRESS } from '@/config'
+import { wagmiAdapter, CONTRACT_ADDRESS, START_BLOCK } from '@/config'
 import VotingABI from '@/abi/Voting.json'
 
 
@@ -67,7 +67,7 @@ export function useVotingData() {
       const voterLogs = await client.getLogs({
         address: CONTRACT_ADDRESS,
         event: parseAbiItem('event VoterRegistered(address voterAddress)'),
-        fromBlock: 0n,
+        fromBlock: START_BLOCK,
         toBlock: 'latest',
       })
       const voterAddresses = voterLogs.map((log) => log.args.voterAddress as string)
@@ -106,7 +106,7 @@ export function useVotingData() {
       const proposalLogs = await client.getLogs({
         address: CONTRACT_ADDRESS,
         event: parseAbiItem('event ProposalRegistered(uint proposalId)'),
-        fromBlock: 0n,
+        fromBlock: START_BLOCK,
         toBlock: 'latest',
       })
       const proposalIds = proposalLogs.map((log) => Number(log.args.proposalId))
@@ -115,7 +115,7 @@ export function useVotingData() {
       const votedLogs = await client.getLogs({
         address: CONTRACT_ADDRESS,
         event: parseAbiItem('event Voted(address voter, uint proposalId)'),
-        fromBlock: 0n,
+        fromBlock: START_BLOCK,
         toBlock: 'latest',
       })
       const voteCountsMap: Record<number, bigint> = {}

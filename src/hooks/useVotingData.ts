@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useAccount, useReadContract, useWatchContractEvent } from 'wagmi'
 import { getPublicClient } from '@wagmi/core'
-import { parseAbiItem, decodeFunctionData, type PublicClient, type AbiEvent } from 'viem'
+import { parseAbiItem, type PublicClient, type AbiEvent } from 'viem'
 import { wagmiAdapter, CONTRACT_ADDRESS, START_BLOCK } from '@/config'
 import VotingABI from '@/abi/Voting.json'
 
@@ -143,87 +143,26 @@ export function useVotingData() {
         setVoterInfo(null)
       }
 
-      // 3. Fetch ProposalRegistered events to get IDs
-      const proposalLogs = await getLogsInChunks(client, {
-        address: CONTRACT_ADDRESS,
-        event: parseAbiItem('event ProposalRegistered(uint proposalId)'),
-        fromBlock: START_BLOCK,
-      })
-      const proposalIds = (proposalLogs as unknown as { args: { proposalId: bigint } }[]).map((log) => Number(log.args.proposalId))
+      // 3. Fetch all proposals directly using getProposals view function (for voters or owner)
+      if ((isUserVoter || isOwner) && address) {
+        try {
+          const proposalsData = (await client.readContract({
+            address: CONTRACT_ADDRESS,
+            abi: VotingABI.abi,
+            functionName: 'getProposals',
+            account: address,
+          })) as { description: string; voteCount: bigint }[]
 
-      // 3.5 Fetch Voted events to calculate vote counts dynamically for non-voter users
-      const votedLogs = await getLogsInChunks(client, {
-        address: CONTRACT_ADDRESS,
-        event: parseAbiItem('event Voted(address voter, uint proposalId)'),
-        fromBlock: START_BLOCK,
-      })
-      const voteCountsMap: Record<number, bigint> = {};
-      (votedLogs as unknown as { args: { proposalId: bigint } }[]).forEach((log) => {
-        const propId = Number(log.args.proposalId)
-        voteCountsMap[propId] = (voteCountsMap[propId] || 0n) + 1n
-      })
-
-      // 4. Resolve proposal descriptions & vote counts.
-      // Constraint: calling getOneProposal reverts if account is not registered.
-      // So we must use a registered address (or let current user call it only if registered)
-      if (isUserVoter && address) {
-        const proposalPromises = proposalIds.map(async (id) => {
-          try {
-            const proposalData = (await client.readContract({
-              address: CONTRACT_ADDRESS,
-              abi: VotingABI.abi,
-              functionName: 'getOneProposal',
-              args: [BigInt(id)],
-              account: address,
-            })) as { description: string; voteCount: bigint }
-
-            return {
-              id,
-              description: proposalData.description,
-              voteCount: proposalData.voteCount,
-            }
-          } catch (err) {
-            console.error(`Error reading proposal ${id}:`, err)
-            return null
-          }
-        })
-        const results = await Promise.all(proposalPromises)
-        const proposalList = results.filter((p): p is Proposal => p !== null)
-        setProposals(proposalList)
-      } else if (isOwner && address) {
-        // Fallback for owner/admin: decode transaction input to get description
-        const proposalPromises = (proposalLogs as unknown as { args: { proposalId: bigint }; transactionHash: `0x${string}` }[]).map(async (log) => {
-          const id = Number(log.args.proposalId)
-          try {
-            if (!log.transactionHash) return null
-            const tx = await client.getTransaction({ hash: log.transactionHash })
-            const decoded = decodeFunctionData({
-              abi: VotingABI.abi,
-              data: tx.input,
-            })
-            const description = decoded.args?.[0] as string || ''
-            return {
-              id,
-              description,
-              voteCount: voteCountsMap[id] || 0n,
-            }
-          } catch (err) {
-            console.error(`Error decoding proposal tx for ID ${id}:`, err)
-            return null
-          }
-        })
-        const results = await Promise.all(proposalPromises)
-        const proposalList = results.filter((p): p is Proposal => p !== null)
-
-        // Prepend GENESIS proposal if workflow Status >= 1 (ProposalsRegistrationStarted)
-        if (workflowStatus >= 1) {
-          proposalList.unshift({
-            id: 0,
-            description: 'GENESIS',
-            voteCount: voteCountsMap[0] || 0n,
-          })
+          const proposalList = proposalsData.map((p, index) => ({
+            id: index,
+            description: p.description,
+            voteCount: p.voteCount,
+          }))
+          setProposals(proposalList)
+        } catch (err) {
+          console.error("Error fetching proposals:", err)
+          setProposals([])
         }
-        setProposals(proposalList)
       } else {
         setProposals([])
       }
@@ -232,7 +171,7 @@ export function useVotingData() {
     } finally {
       setIsEventLoading(false)
     }
-  }, [isConnected, address, isOwner, workflowStatus])
+  }, [isConnected, address, isOwner])
 
   // Trigger loading on changes
   useEffect(() => {

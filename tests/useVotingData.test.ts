@@ -145,14 +145,11 @@ describe('useVotingData hook', () => {
         // Returns { isRegistered, hasVoted, votedProposalId }
         return { isRegistered: true, hasVoted: true, votedProposalId: 1n }
       }
-      if (args.functionName === 'getOneProposal') {
-        const id = args.args[0]
-        if (id === 0n) {
-          return { description: 'Genesis proposal description', voteCount: 0n }
-        }
-        if (id === 1n) {
-          return { description: 'First voter proposal description', voteCount: 2n }
-        }
+      if (args.functionName === 'getProposals') {
+        return [
+          { description: 'Genesis proposal description', voteCount: 0n },
+          { description: 'First voter proposal description', voteCount: 2n },
+        ]
       }
       return undefined
     })

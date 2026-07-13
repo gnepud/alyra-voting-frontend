@@ -49,11 +49,8 @@ export default function ProposalList({ proposals, currentStatus, isVoter, hasVot
   }
 
 
-  // Hide proposal ID 0 (GENESIS) if there is more than 1 proposal registered
-  const filteredProposals = proposals.filter(p => !(p.id === 0 && proposals.length > 1))
-
   // Show winning proposal card if votes are tallied
-  const winningProposal = currentStatus === 5 ? filteredProposals.find(p => p.id === winningId) : null
+  const winningProposal = currentStatus === 5 ? proposals.find(p => p.id === winningId) : null
 
   return (
     <div className="flex flex-col gap-6">
@@ -67,17 +64,17 @@ export default function ProposalList({ proposals, currentStatus, isVoter, hasVot
 
       <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm flex flex-col gap-4">
         <div>
-          <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Registered Proposals ({filteredProposals.length})</h2>
+          <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Registered Proposals ({proposals.length})</h2>
           <p className="text-sm text-zinc-500">List of all submitted voting ideas on-chain.</p>
         </div>
 
-        {filteredProposals.length === 0 ? (
+        {proposals.length === 0 ? (
           <div className="text-sm text-zinc-400 italic text-center p-8 bg-zinc-50 dark:bg-zinc-900 rounded-xl">
             {isVoter ? "No proposals registered yet." : "Register to view proposal lists."}
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {filteredProposals.map((proposal) => {
+            {proposals.map((proposal) => {
               const isWinner = currentStatus === 5 && proposal.id === winningId
               const showVoteButton = currentStatus === 3 && isVoter && !hasVoted
 

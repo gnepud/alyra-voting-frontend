@@ -43,3 +43,5 @@ next-env.d.ts
 # superpowers brainstorm files
 .superpowers/
 
+.agents/
+.claude/

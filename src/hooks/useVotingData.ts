@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useAccount, useReadContract, useWatchContractEvent } from 'wagmi'
 import { getPublicClient } from '@wagmi/core'
-import { parseAbiItem, decodeFunctionData } from 'viem'
+import { parseAbiItem, decodeFunctionData, type PublicClient, type AbiEvent } from 'viem'
 import { wagmiAdapter, CONTRACT_ADDRESS, START_BLOCK } from '@/config'
 import VotingABI from '@/abi/Voting.json'
 
@@ -16,6 +16,48 @@ export interface VoterInfo {
   isRegistered: boolean
   hasVoted: boolean
   votedProposalId: bigint
+}
+
+async function getLogsInChunks(
+  client: PublicClient,
+  params: {
+    address: `0x${string}`
+    event: ReturnType<typeof parseAbiItem>
+    fromBlock: bigint
+  }
+) {
+  try {
+    const latestBlock = await client.getBlockNumber()
+    const start = params.fromBlock
+    const chunkLimit = 9000n
+    const allLogs = []
+
+    let currentFrom = start
+    while (currentFrom <= latestBlock) {
+      let currentTo = currentFrom + chunkLimit
+      if (currentTo > latestBlock) {
+        currentTo = latestBlock
+      }
+
+      const chunkLogs = await client.getLogs({
+        address: params.address,
+        event: params.event as AbiEvent,
+        fromBlock: currentFrom,
+        toBlock: currentTo,
+      })
+      allLogs.push(...chunkLogs)
+      currentFrom = currentTo + 1n
+    }
+    return allLogs
+  } catch (error) {
+    console.error('Error in getLogsInChunks:', error)
+    return await client.getLogs({
+      address: params.address,
+      event: params.event as AbiEvent,
+      fromBlock: params.fromBlock,
+      toBlock: 'latest',
+    })
+  }
 }
 
 export function useVotingData() {
@@ -64,13 +106,12 @@ export function useVotingData() {
       if (!client) return
 
       // 1. Fetch VoterRegistered events to compile voter address list
-      const voterLogs = await client.getLogs({
+      const voterLogs = await getLogsInChunks(client, {
         address: CONTRACT_ADDRESS,
         event: parseAbiItem('event VoterRegistered(address voterAddress)'),
         fromBlock: START_BLOCK,
-        toBlock: 'latest',
       })
-      const voterAddresses = voterLogs.map((log) => log.args.voterAddress as string)
+      const voterAddresses = (voterLogs as unknown as { args: { voterAddress: string } }[]).map((log) => log.args.voterAddress)
       setVoters(voterAddresses)
 
       // Check if current user is registered
@@ -103,23 +144,21 @@ export function useVotingData() {
       }
 
       // 3. Fetch ProposalRegistered events to get IDs
-      const proposalLogs = await client.getLogs({
+      const proposalLogs = await getLogsInChunks(client, {
         address: CONTRACT_ADDRESS,
         event: parseAbiItem('event ProposalRegistered(uint proposalId)'),
         fromBlock: START_BLOCK,
-        toBlock: 'latest',
       })
-      const proposalIds = proposalLogs.map((log) => Number(log.args.proposalId))
+      const proposalIds = (proposalLogs as unknown as { args: { proposalId: bigint } }[]).map((log) => Number(log.args.proposalId))
 
       // 3.5 Fetch Voted events to calculate vote counts dynamically for non-voter users
-      const votedLogs = await client.getLogs({
+      const votedLogs = await getLogsInChunks(client, {
         address: CONTRACT_ADDRESS,
         event: parseAbiItem('event Voted(address voter, uint proposalId)'),
         fromBlock: START_BLOCK,
-        toBlock: 'latest',
       })
-      const voteCountsMap: Record<number, bigint> = {}
-      votedLogs.forEach((log) => {
+      const voteCountsMap: Record<number, bigint> = {};
+      (votedLogs as unknown as { args: { proposalId: bigint } }[]).forEach((log) => {
         const propId = Number(log.args.proposalId)
         voteCountsMap[propId] = (voteCountsMap[propId] || 0n) + 1n
       })
@@ -153,7 +192,7 @@ export function useVotingData() {
         setProposals(proposalList)
       } else if (isOwner && address) {
         // Fallback for owner/admin: decode transaction input to get description
-        const proposalPromises = proposalLogs.map(async (log) => {
+        const proposalPromises = (proposalLogs as unknown as { args: { proposalId: bigint }; transactionHash: `0x${string}` }[]).map(async (log) => {
           const id = Number(log.args.proposalId)
           try {
             if (!log.transactionHash) return null

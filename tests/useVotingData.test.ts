@@ -20,6 +20,7 @@ vi.mock('@wagmi/core', () => ({
   getPublicClient: () => ({
     getLogs: mockGetLogs,
     readContract: mockReadContract,
+    getBlockNumber: vi.fn().mockResolvedValue(0n),
   }),
 }))
 

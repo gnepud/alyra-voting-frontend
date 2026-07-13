@@ -1,6 +1,7 @@
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
 import { sepolia } from '@reown/appkit/networks'
 import type { AppKitNetwork } from '@reown/appkit/networks'
+import { http } from 'viem'
 
 export const projectId = process.env.NEXT_PUBLIC_REOWN_PROJECT_ID
 
@@ -34,6 +35,9 @@ export const wagmiAdapter = new WagmiAdapter({
   networks,
   projectId,
   ssr: true,
+  transports: {
+    [customSepolia.id]: http(rpcUrl),
+  },
 })
 
 export const metadata = {

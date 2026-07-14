@@ -2,6 +2,8 @@
 
 A modern, responsive, and secure decentralized voting frontend built for the **Blockchain Developer** project. This DApp provides a web interface for the `Voting.sol` smart contract, guiding admins and voters through a strict 6-stage democratic workflow.
 
+[Demo](https://streamable.com/e/exwgop)
+
 ## 🚀 Deployed Contract & Network
 
 *   **Network:** Ethereum Sepolia Testnet
@@ -27,9 +29,7 @@ This project was developed using **Antigravity** and the **Superpowers** plugin 
 Rather than writing code directly, the project followed a structured lifecycle:
 
 ### 1. Requirements & Brainstorming
-Using the `brainstorming` skill, we thoroughly explored user requirements and Web3-specific technical constraints:
-*   Addressed the hydration mismatch risks of Server-Side Rendered (SSR) Next.js apps when parsing connected wallet cookies.
-*   Analyzed the `onlyVoters` access controls on the contract to design safe client-side RPC queries.
+Using the `brainstorming` skill, we thoroughly explored user requirements and Web3-specific technical constraints。
 
 ### 2. Design Specs & Written Plans
 Before writing any code, we used the `writing-plans` skill to generate structured design specifications and step-by-step implementation plans. These planning documents are stored in the project's documentation folder:
